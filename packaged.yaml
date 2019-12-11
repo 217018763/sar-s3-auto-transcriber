@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: svs214 - Example 2
+Parameters:
+  InputBucketName:
+    Type: String
+    Default: svs214-ex2
+Globals:
+  Function:
+    Timeout: 10
+Resources:
+  InputS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: InputBucketName
+  ResultsDDBtable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: partitionKey
+        AttributeType: S
+      KeySchema:
+      - AttributeName: partitionKey
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+  SentimentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://svs214-sam-deploy/4fb7c90c444cf0a0ed32ab147ae174c7
+      Handler: app.handler
+      Runtime: nodejs12.x
+      MemorySize: 128
+      Environment:
+        Variables:
+          ddbTable:
+            Ref: ResultsDDBtable
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: ResultsDDBtable
+      - S3CrudPolicy:
+          BucketName:
+            Ref: InputBucketName
+      - Statement:
+        - Sid: comprehendDetectSentimentPolicy
+          Effect: Allow
+          Action:
+          - comprehend:DetectSentiment
+          Resource: '*'
+      Events:
+        FileUpload:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: InputS3Bucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                - Name: suffix
+                  Value: .json
+  TranslatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://svs214-sam-deploy/e7e732b5899c5801fdd9345dab08a4e5
+      Handler: app.handler
+      Runtime: nodejs12.x
+      MemorySize: 128
+      Policies:
+      - S3CrudPolicy:
+          BucketName:
+            Ref: InputBucketName
+      - Statement:
+        - Effect: Allow
+          Resource: '*'
+          Action:
+          - transcribe:StartTranscriptionJob
+          - cloudwatch:GetMetricStatistics
+          - cloudwatch:ListMetrics
+      Events:
+        FileUpload:
+          Type: S3
+          Properties:
+            Bucket:
+              Ref: InputS3Bucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                - Name: suffix
+                  Value: .mp3
