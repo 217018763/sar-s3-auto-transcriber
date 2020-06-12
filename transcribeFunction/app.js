@@ -40,7 +40,8 @@ exports.handler = async (event) => {
           Media: { MediaFileUri: mediaUrl },
           MediaFormat: 'mp3',
           TranscriptionJobName,
-          OutputBucketName: record.s3.bucket.name,
+//          OutputBucketName: record.s3.bucket.name,
+          OutputBucketName: 'poc-mb3-transcribed',
         }).promise()
       })
     )
