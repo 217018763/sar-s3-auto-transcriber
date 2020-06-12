@@ -6,6 +6,11 @@ Parameters:
   InputBucketName:
     Type: String
     Default: 'myTranscribeBucket'
+  
+  OutputBucketName:
+    Type: String
+    Default: 'myOutputTranscribeBucket'
+    
 
 Globals:
   Function:
@@ -16,6 +21,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref InputBucketName
+
+  OutputS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref OutputBucketName
 
   ResultsDDBtable:
     Type: AWS::DynamoDB::Table
@@ -53,7 +63,7 @@ Resources:
         FileUpload:
           Type: S3
           Properties:
-            Bucket: !Ref InputS3Bucket
+            Bucket: !Ref OutputS3Bucket
             Events: s3:ObjectCreated:*
             Filter: 
               S3Key:
