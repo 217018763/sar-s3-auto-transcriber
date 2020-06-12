@@ -5,6 +5,9 @@ Parameters:
   InputBucketName:
     Type: String
     Default: svs214-ex2
+  OutputBucketName:
+    Type: String
+    Default: svs214-ex2
 Globals:
   Function:
     Timeout: 10
@@ -14,6 +17,11 @@ Resources:
     Properties:
       BucketName:
         Ref: InputBucketName
+  OutputS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Ref: OutputBucketName
   ResultsDDBtable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -53,7 +61,7 @@ Resources:
           Type: S3
           Properties:
             Bucket:
-              Ref: InputS3Bucket
+              Ref: OutputS3Bucket
             Events: s3:ObjectCreated:*
             Filter:
               S3Key:
